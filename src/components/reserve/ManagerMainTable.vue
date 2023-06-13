@@ -9,13 +9,21 @@
           </div>
           <div style="display: flex;width: 65%;justify-content: inherit;font-weight: bold;">
             <MonthSelect
-              :countMonth="countMonth"
+              :countMonth="1"
               @updateMonthSelect="updateMonthSelect"
             >
             </MonthSelect>
           </div>
         </div>
       </div>
+      <status-plan
+          :visibleMonths="visibleMonths"
+          :currentProject="currentProject"
+          :currentProjectName="currentProjectName"
+          :currentPlan="currentPlan"
+          :currentCompetence="getCurrentCompetence"
+      >
+      </status-plan>
       <template
         v-for="competence in competences"
         :key="competence"
@@ -103,6 +111,7 @@ import MonthSelect from '@/components/MonthSelect.vue';
 import EmployerInfoPopup from '@/components/employer/EmployerInfoPopup.vue';
 import MonthHoursResult from '@/components/MonthHoursResult.vue';
 import HistoryPlan from '@/components/modals/HistoryPlan.vue';
+import StatusPlan from '@/components/reserve/StatusPlan.vue';
 
 export default {
   name: 'ManagerMainTable',
@@ -113,6 +122,7 @@ export default {
     MonthHoursResult,
     SetReservePopup,
     HistoryPlan,
+    StatusPlan,
   },
   emits: ['projectsEmployersUpdate', 'projectsEmployersDelete', 'getEmployers', 'projectsEmployersEdit'],
   props: {
@@ -146,6 +156,8 @@ export default {
       date: {},
       modalModifer: '',
       managerId: this.$store.state.userId,
+      currentPlan: {},
+      currentCompetence: {},
     };
   },
   methods: {
@@ -157,10 +169,33 @@ export default {
           month,
           year,
         },
+        headers: {
+          Authorization: `Bearer ${this.$store.state.token}`,
+        },
       });
       this.plan[month] = response.data.plan;
       this.fact[month] = response.data.fact;
       this.getCountHours(month, response.data.fact);
+      this.getStatusPlan(this.visibleMonths, this.currentProject);
+    },
+
+    async getStatusPlan(visibleMonths, currentProject) {
+      try {
+        const response = await axios.get(`${this.$store.state.apiUrl}/plan`, {
+          params: {
+            year: visibleMonths[0].year,
+            month: visibleMonths[0].month,
+            project: currentProject,
+          },
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
+          },
+        });
+        this.currentPlan = response.data;
+        console.log(response);
+      } catch (e) {
+        console.log(e);
+      }
     },
     async setReserve(percentValue, employerId, yearNum, monthNum) {
       try {
@@ -185,6 +220,9 @@ export default {
           project,
           month,
           year,
+        },
+        headers: {
+          Authorization: `Bearer ${this.$store.state.token}`,
         },
       });
       const abjArr = Object.entries(response.data.employers);
@@ -257,7 +295,16 @@ export default {
   },
   mounted() {
   },
-  computed: {},
+  computed: {
+    getCurrentCompetence() {
+      this.competences.forEach((item) => {
+        if (this.competenceCheck(item)) {
+          this.currentCompetence[item] = item;
+        }
+      });
+      return this.currentCompetence;
+    },
+  },
   watch: {
     commandValueCreate() {
       this.createCommand();

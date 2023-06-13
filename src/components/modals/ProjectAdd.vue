@@ -111,6 +111,7 @@ export default {
           return newArr;
         }
         this.projectsList.forEach((item) => {
+          console.log(item);
           if (this.checkUseProject(item)) {
             if (item.title.toLowerCase().indexOf(this.search.toLowerCase()) !== -1) {
               newArr.push({
@@ -121,6 +122,8 @@ export default {
           }
         });
       }
+      console.log(this.search !== undefined);
+      console.log(this.projectsList.length);
       return newArr;
     },
   },

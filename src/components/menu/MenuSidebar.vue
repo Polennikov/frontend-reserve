@@ -11,9 +11,13 @@
                   :class="{ activeMenu: pageKey === 0 }">
             <div>Ресурсы</div>
           </button>
+          <button class="menu-button-project__item" @click="pageMain(2)"
+                  :class="{ activeMenu: pageKey === 2 }">
+            <div>Управление</div>
+          </button>
         </div>
       </li>
-      <template v-if="pageKey">
+      <template v-if="pageKey === 1">
         <project-sidebar
           :projectsSidebar="projectsSidebar"
           :currentProject="currentProject"
@@ -21,6 +25,17 @@
           @choseProject="choseProject"
           @deleteProject="deleteProject"
           @addSelectedProject="addSelectedProject"
+        >
+        </project-sidebar>
+      </template>
+      <template v-else-if="pageKey === 2">
+        <project-sidebar
+            :projectsSidebar="projectsSidebar"
+            :currentProject="currentProject"
+            :projectsList="projectsList"
+            @choseProject="choseProject"
+            @deleteProject="deleteProject"
+            @addSelectedProject="addSelectedProject"
         >
         </project-sidebar>
       </template>

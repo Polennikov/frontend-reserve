@@ -7,6 +7,8 @@ export default createStore({
     userId: localStorage.getItem('userId') || 0,
     login: localStorage.getItem('login') || 0,
     userName: localStorage.getItem('userName') || null,
+    competence: localStorage.getItem('competence') || '',
+    roleUser: localStorage.getItem('roleUser') || '',
     monthNames: [
       'Январь',
       'Февраль',
@@ -52,32 +54,38 @@ export default createStore({
   },
   mutations: {
     login_success(state, {
-      token, login, userId, userName,
+      token, login, userId, userName, competence, roleUser,
     }) {
       state.login = login;
       state.token = token;
       state.userId = userId;
       state.userName = userName;
+      state.competence = competence;
+      state.roleUser = roleUser;
     },
     logout(state) {
       state.login = '';
       state.token = '';
       state.userId = 0;
       state.userName = 0;
+      state.competence = '';
+      state.roleUser = '';
     },
   },
   actions: {
     login({ commit }, {
-      token, login, userId, userName,
+      token, login, userId, userName, competence, roleUser,
     }) {
       return new Promise((resolve) => {
         commit('login_success', {
-          token, login, userId, userName,
+          token, login, userId, userName, competence, roleUser,
         });
         localStorage.setItem('token', token);
         localStorage.setItem('login', login === 0 ? '' : login);
         localStorage.setItem('userId', userId);
         localStorage.setItem('userName', userName);
+        localStorage.setItem('competence', competence);
+        localStorage.setItem('roleUser', roleUser);
         resolve();
       });
     },
@@ -88,6 +96,10 @@ export default createStore({
         localStorage.removeItem('login');
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');
+        localStorage.removeItem('competence');
+        localStorage.removeItem('roleUser');
+        localStorage.removeItem('currentProject');
+        localStorage.removeItem('currentProjectName');
         resolve();
       });
     },

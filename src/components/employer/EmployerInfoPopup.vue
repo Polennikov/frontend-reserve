@@ -121,7 +121,7 @@
               <MonthSelect
                 :employer="employer"
                 :visibleMonthsUpdate="visibleMonthsUpdate"
-                :countMonth="countMonth"
+                :countMonth="1"
                 @updateMonthSelect="updateMonthSelect"
               >
               </MonthSelect>
@@ -375,12 +375,14 @@ export default {
     async getEmployerCardInfo(employer, month, year) {
       const response = await axios.get(`${this.$store.state.apiUrl}/info/employer`, {
         params: {
-          token: this.$store.state.token,
           employer,
           month,
           year,
           idB24: this.idB24,
           settingHours: this.hoursWork(),
+        },
+        headers: {
+          Authorization: `Bearer ${this.$store.state.token}`,
         },
       });
       this.plan[month] = response.data.plan;

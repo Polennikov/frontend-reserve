@@ -125,7 +125,7 @@
             </template>
           </div>
         </div>
-        <div v-else>
+        <div v-else-if="pageKey === 0">
           <template v-if="resourceCompetenceCheck !== null">
             <div class="container-fluid">
               <div class="px-4 mt-4" style="display: flex;
@@ -144,6 +144,13 @@
               @getEmployers="getEmployers"
             />
           </template>
+        </div>
+        <div v-else >
+          <management-project
+              :projectsList="projectsList"
+              :employersList="employersList"
+              :planApproved="planApproved">
+          </management-project>
         </div>
       </div>
     </div>
@@ -188,6 +195,7 @@ import ProjectAddPopup from '@/components/modals/ProjectAdd.vue';
 import ManagerInfo from '@/components/modals/ManagerInfo.vue';
 import SettingProject from '@/components/modals/SettingProject.vue';
 import SettingManager from '@/components/modals/SettingManager.vue';
+import ManagementProject from '@/components/ManagementProject.vue';
 
 export default {
   name: 'ManagerMainPage',
@@ -200,6 +208,7 @@ export default {
     ProjectAddPopup,
     SettingProject,
     SettingManager,
+    ManagementProject,
   },
   data() {
     return {
@@ -220,14 +229,15 @@ export default {
       commandValueCreate: 0,
       managerSetting: {},
       countMonth: null,
+      planApproved: {},
     };
   },
   methods: {
     async getManagers() {
       try {
         const response = await axios.get(`${this.$store.state.apiUrl}/manager`, {
-          params: {
-            token: this.$store.state.token,
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
           },
         });
         this.managersList = response.data.managers;
@@ -235,17 +245,34 @@ export default {
         console.log(e);
       }
     },
+    async getPlanApproved() {
+      try {
+        const response = await axios.get(`${this.$store.state.apiUrl}/plan/approved`, {
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
+          },
+          params: {
+            competence: localStorage.getItem('competence'),
+          },
+        });
+        this.planApproved = response.data;
+      } catch (e) {
+        console.log(e);
+      }
+    },
     async getSettingManager(id) {
       try {
         const response = await axios.get(`${this.$store.state.apiUrl}/manager/setting/${id}`, {
-          params: {
-            token: this.$store.state.token,
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
           },
         });
-        this.managerSetting = response.data.setting;
-        if (this.managerSetting !== null) {
-          this.countMonth = response.data.setting.countMonth !== null
-            ? response.data.setting.countMonth : 2;
+        if (response.data.success !== false) {
+          this.managerSetting = response.data.setting;
+          if (this.managerSetting !== null) {
+            this.countMonth = response.data.setting.countMonth !== null
+              ? response.data.setting.countMonth : 2;
+          }
         }
       } catch (e) {
         console.log(e);
@@ -260,11 +287,17 @@ export default {
           projectsSidebar: projectsSidebarCurrent !== null
             ? JSON.stringify(projectsSidebarCurrent) : null,
         };
-        const response = await axios.post(`${this.$store.state.apiUrl}/manager/setting/${id}?token=${this.$store.state.token}`, postParams);
-        this.managerSetting = response.data.setting;
-        if (this.managerSetting !== null) {
-          this.countMonth = response.data.setting.countMonth !== null
-            ? response.data.setting.countMonth : 2;
+        const response = await axios.post(`${this.$store.state.apiUrl}/manager/setting/${id}`, postParams, {
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
+          },
+        });
+        if (response.data.success !== false) {
+          this.managerSetting = response.data.setting;
+          if (this.managerSetting !== null) {
+            this.countMonth = response.data.setting.countMonth !== null
+              ? response.data.setting.countMonth : 2;
+          }
         }
       } catch (e) {
         console.log(e);
@@ -273,8 +306,22 @@ export default {
     async getProjects() {
       try {
         const response = await axios.get(`${this.$store.state.apiUrl}/project`, {
-          params: {
-            token: this.$store.state.token,
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
+          },
+        });
+        if (response.data.projects.length > 0) {
+          this.projectsList = response.data.projects;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    async getProjectsApproved() {
+      try {
+        const response = await axios.get(`${this.$store.state.apiUrl}/project/approved`, {
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
           },
         });
         if (response.data.projects.length > 0) {
@@ -287,11 +334,12 @@ export default {
     async getEmployers() {
       try {
         const response = await axios.get(`${this.$store.state.apiUrl}/employer`, {
-          params: {
-            token: this.$store.state.token,
+          headers: {
+            Authorization: `Bearer ${this.$store.state.token}`,
           },
         });
         if (response.data.employers.length > 0) {
+          console.log(response.data.employers);
           this.employersList = response.data.employers;
           this.employersList.forEach((employer) => {
             if (employer.competence && !this.competences.includes(employer.competence)) {
@@ -415,6 +463,7 @@ export default {
     this.getEmployers();
     this.getProjects();
     this.getManagers();
+    this.getPlanApproved();
     this.getSettingManager(this.$store.state.userId);
   },
   beforeUpdate() {

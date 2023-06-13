@@ -106,8 +106,10 @@ export default {
           const { login } = response.data;
           const { userId } = response.data;
           const { userName } = response.data;
+          const { competence } = response.data;
+          const { roleUser } = response.data;
           this.$store.dispatch('login', {
-            token, login, userId, userName,
+            token, login, userId, userName, competence, roleUser,
           })
             .then(() => {
               this.$router.push('/');
